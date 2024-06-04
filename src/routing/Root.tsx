@@ -1,11 +1,12 @@
 import { Box } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import LayoutAppBar from "../@core/layouts/components/vertical/appBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSettings } from "../@core/hooks/useSettings";
 import AppBarContent from "../components/organisms/layouts/components/vertical/AppBarContent";
 import { SideBar } from "../components/organisms/layouts/Sidebar/Sidebar";
 import OutsideClickHandler from "react-outside-click-handler";
+import { useAuth } from "../@core/context/auth-and-perm/AuthProvider";
 
 export const Root = (props) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -14,59 +15,67 @@ export const Root = (props) => {
   const [toggled, setToggled] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openSide, setOpenSide] = useState(false);
-
+  const navigate = useNavigate();
   const toggleNavVisibility = () => setNavVisible(!navVisible);
   const handleClickOutside = () => {
     setOpenSide(false);
   };
+  const { user, logout } = useAuth();
+  console.log("🚀 ~ Root ~ user:", user);
 
-  // const handleCollapsedSideBar = () => {
-  //   setSidebarCollapsed(!isSidebarCollapsed);
-  // };
-  return (
-    <div className="flex ">
-      <div className={toggled ? "w-[%]" : collapsed ? "w-[6%]" : "w-[250px]"}>
-        <OutsideClickHandler onOutsideClick={handleClickOutside}>
-          <div className="fixed">
-            <SideBar
-              // setCollapsed={setCollapsed}
-              collapsed={collapsed}
-              setToggled={setToggled}
-              toggled={toggled}
-            />
-          </div>
-        </OutsideClickHandler>
-      </div>
-      <div className={` main_container flex-grow-[1] w-[80%] `}>
-        <Box
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            // display: "flex",
-            minHeight: "100vh",
-            flexDirection: "column",
-          }}
-        >
-          <LayoutAppBar
-            toggleNavVisibility={toggleNavVisibility}
-            settings={settings}
-            appBarContent={
-              <AppBarContent
-                settings={settings}
-                isSidebarCollapsed={isSidebarCollapsed}
-                toggled={toggled}
-                setSidebarCollapsed={setSidebarCollapsed}
-                saveSettings={saveSettings}
+  useEffect(() => {
+    if (!user?.token) {
+      logout();
+    }
+  }, [user]);
+  if (user?.token) {
+    return (
+      <div className="flex ">
+        <div className={toggled ? "w-[%]" : collapsed ? "w-[6%]" : "w-[250px]"}>
+          <OutsideClickHandler onOutsideClick={handleClickOutside}>
+            <div className="fixed">
+              <SideBar
+                // setCollapsed={setCollapsed}
+                collapsed={collapsed}
                 setToggled={setToggled}
-                {...props}
+                toggled={toggled}
               />
-            }
-          />
-          <main className="flex p-6  flex-col justify-between !pb-1 layout-page-content  md:max-h-[91vh] md:max-w-full overflow-y-scroll flex-grow w-full mx-auto transition-padding">
-            <Outlet />
-          </main>
-        </Box>
+            </div>
+          </OutsideClickHandler>
+        </div>
+        <div className={` main_container flex-grow-[1] w-[80%] `}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              minWidth: 0,
+              // display: "flex",
+              minHeight: "100vh",
+              flexDirection: "column",
+            }}
+          >
+            <LayoutAppBar
+              toggleNavVisibility={toggleNavVisibility}
+              settings={settings}
+              appBarContent={
+                <AppBarContent
+                  settings={settings}
+                  isSidebarCollapsed={isSidebarCollapsed}
+                  toggled={toggled}
+                  setSidebarCollapsed={setSidebarCollapsed}
+                  saveSettings={saveSettings}
+                  setToggled={setToggled}
+                  {...props}
+                />
+              }
+            />
+            <main className="flex p-6  flex-col justify-between !pb-1 layout-page-content  md:max-h-[91vh] md:max-w-full overflow-y-scroll flex-grow w-full mx-auto transition-padding">
+              <Outlet />
+            </main>
+          </Box>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }else{
+    navigate("/login")
+  }
 };

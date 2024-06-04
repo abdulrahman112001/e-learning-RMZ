@@ -29,7 +29,7 @@ export const AuthProvider = ({children}:AuthProvider_TP)=>{
         Cookies.remove('token');
         if(setUser)
         setUser(null)
-        navigate('/' , {replace:true})
+        navigate('/login' , {replace:true})
     },[setUser,navigate])
 
     const value = useMemo(()=>({
